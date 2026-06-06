@@ -27,6 +27,10 @@ import java.util.*
 
 import com.shoppingappmahesh.ui.components.BannerAdView
 
+import androidx.compose.material.icons.filled.Download
+import com.shoppingappmahesh.util.PdfGenerator
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
@@ -35,6 +39,7 @@ fun OrderHistoryScreen(
 ) {
     val orders by viewModel.orders.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -69,9 +74,11 @@ fun OrderHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(orders) { order ->
-                    OrderItemCard(order) {
+                    OrderItemCard(order, {
                         navController.navigate(Screen.OrderDetails.createRoute(order.orderId))
-                    }
+                    }, {
+                        PdfGenerator.generateInvoice(context, order)
+                    })
                 }
             }
         }
@@ -79,7 +86,7 @@ fun OrderHistoryScreen(
 }
 
 @Composable
-fun OrderItemCard(order: Order, onClick: () -> Unit) {
+fun OrderItemCard(order: Order, onClick: () -> Unit, onDownloadClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,22 +106,31 @@ fun OrderItemCard(order: Order, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )
+                IconButton(onClick = onDownloadClick, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Download, contentDescription = "Download Receipt", tint = Color.Blue, modifier = Modifier.size(20.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = order.status,
                     color = if (order.status == "PAID") Color(0xFF4CAF50) else Color.Red,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodySmall
                 )
+                val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                Text(
+                    text = sdf.format(Date(order.createdAt)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            val sdf = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-            Text(
-                text = sdf.format(Date(order.createdAt)),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
             

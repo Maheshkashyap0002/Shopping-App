@@ -128,7 +128,7 @@ fun HomeHeader(cartItemCount: Int, onSearchClick: () -> Unit, onCartClick: () ->
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "LuxiQue",
+            text = "Shop Me!",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = Color.Black
