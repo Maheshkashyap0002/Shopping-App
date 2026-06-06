@@ -15,6 +15,7 @@ coilCompose = "2.7.0"
 room = "2.8.4"
 datastore = "1.2.1"
 razorpay = "1.6.39"
+playServicesAds = "23.6.0"
 kotlinxCoroutinesPlayServices = "1.9.0"
 googleServices = "4.4.2"
 crashlyticsPlugin = "3.0.3"
@@ -70,6 +71,7 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 # Razorpay
 razorpay = { group = "com.razorpay", name = "checkout", version.ref = "razorpay" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 kotlinx-coroutines-play = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 [plugins]

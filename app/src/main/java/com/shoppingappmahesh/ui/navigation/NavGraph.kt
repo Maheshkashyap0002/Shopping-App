@@ -1,8 +1,10 @@
 package com.shoppingappmahesh.ui.navigation
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,35 +28,27 @@ import com.shoppingappmahesh.ui.screens.search.SearchScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
+    // Scoping AuthViewModel to the Activity to make it stable across the flow
+    val viewModelStoreOwner = LocalActivity.current as? ViewModelStoreOwner ?: return
+    val authViewModel: AuthViewModel = hiltViewModel(viewModelStoreOwner)
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
     ) {
         composable(Screen.Splash.route) {
-            SplashScreen(navController)
+            SplashScreen(navController, authViewModel)
         }
         
         navigation(startDestination = Screen.Login.route, route = "auth_flow") {
-            composable(Screen.Login.route) { entry ->
-                val parentEntry = remember(entry) {
-                    try { navController.getBackStackEntry("auth_flow") } catch (e: Exception) { entry }
-                }
-                val authViewModel: AuthViewModel = hiltViewModel(parentEntry)
+            composable(Screen.Login.route) {
                 LoginScreen(navController, authViewModel)
             }
-            composable(Screen.Otp.route) { entry ->
-                val phoneNumber = entry.arguments?.getString("phoneNumber") ?: ""
-                val parentEntry = remember(entry) {
-                    try { navController.getBackStackEntry("auth_flow") } catch (e: Exception) { entry }
-                }
-                val authViewModel: AuthViewModel = hiltViewModel(parentEntry)
+            composable(Screen.Otp.route) { backStackEntry ->
+                val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
                 OtpScreen(navController, phoneNumber, authViewModel)
             }
-            composable(Screen.ProfileSetup.route) { entry ->
-                val parentEntry = remember(entry) {
-                    try { navController.getBackStackEntry("auth_flow") } catch (e: Exception) { entry }
-                }
-                val authViewModel: AuthViewModel = hiltViewModel(parentEntry)
+            composable(Screen.ProfileSetup.route) {
                 ProfileSetupScreen(navController, authViewModel)
             }
         }

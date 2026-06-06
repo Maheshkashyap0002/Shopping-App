@@ -21,6 +21,8 @@ import com.shoppingappmahesh.ui.components.ProductItem
 import com.shoppingappmahesh.ui.navigation.Screen
 import com.shoppingappmahesh.ui.screens.home.viewmodel.HomeViewModel
 
+import com.shoppingappmahesh.ui.components.BannerAdView
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
@@ -37,6 +39,9 @@ fun SearchScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            BannerAdView(modifier = Modifier.padding(bottom = 100.dp))
+        },
         topBar = {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(

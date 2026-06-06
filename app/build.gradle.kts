@@ -79,6 +79,8 @@ dependencies {
     // Razorpay
     implementation(libs.razorpay)
 
+    implementation(libs.play.services.ads)
+
     implementation(libs.kotlinx.coroutines.play)
 
     testImplementation(libs.junit)

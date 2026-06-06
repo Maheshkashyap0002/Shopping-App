@@ -25,6 +25,8 @@ import com.shoppingappmahesh.ui.screens.order.viewmodel.OrderViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+import com.shoppingappmahesh.ui.components.BannerAdView
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
@@ -36,6 +38,9 @@ fun OrderHistoryScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            BannerAdView(modifier = Modifier.padding(bottom = 100.dp))
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("My Orders", fontWeight = FontWeight.Bold) },

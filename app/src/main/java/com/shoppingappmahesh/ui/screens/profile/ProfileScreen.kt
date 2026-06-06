@@ -27,6 +27,8 @@ import coil.compose.AsyncImage
 import com.shoppingappmahesh.ui.navigation.Screen
 import com.shoppingappmahesh.ui.screens.profile.viewmodel.ProfileViewModel
 
+import com.shoppingappmahesh.ui.components.BannerAdView
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -49,6 +51,9 @@ fun ProfileScreen(
     }
 
     Scaffold(
+        bottomBar = {
+            BannerAdView(modifier = Modifier.padding(bottom = 100.dp))
+        },
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
