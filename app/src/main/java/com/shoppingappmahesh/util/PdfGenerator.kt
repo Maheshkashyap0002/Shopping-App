@@ -80,7 +80,7 @@ object PdfGenerator {
         paint.textSize = 10f
         paint.color = Color.GRAY
         canvas.drawText("This is an electronically generated receipt.", 40f, 800f, paint)
-        canvas.drawText("Thank you for shopping with LuxiQue!", 40f, 815f, paint)
+        canvas.drawText("Thank you for shopping with us!", 40f, 815f, paint)
 
         pdfDocument.finishPage(page)
 

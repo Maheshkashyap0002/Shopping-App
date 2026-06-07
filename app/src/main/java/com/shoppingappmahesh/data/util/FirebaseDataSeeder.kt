@@ -9,6 +9,17 @@ class FirebaseDataSeeder @Inject constructor(
     private val database: FirebaseDatabase
 ) {
     fun seedData() {
+        val productsRef = database.getReference("products")
+        
+        // Check if data already exists to avoid overwriting your manual changes in Firebase Console
+        productsRef.get().addOnSuccessListener { snapshot ->
+            if (!snapshot.exists()) {
+                performInitialSeed()
+            }
+        }
+    }
+
+    private fun performInitialSeed() {
         val categoriesRef = database.getReference("categories")
         val productsRef = database.getReference("products")
 
@@ -52,7 +63,6 @@ class FirebaseDataSeeder @Inject constructor(
             val price = 499.0 + (i * 200)
             val discountPrice = price * 0.75
             
-            // Snake Plant Pro is now "Snake Jacket Pro" for ₹1
             val isSnake = i % 15 == 0
             val finalName = if(isSnake) "Snake Jacket Pro Elite v$i" else "$category Premium Model #$i"
             val finalPrice = if(isSnake) 1.0 else price
