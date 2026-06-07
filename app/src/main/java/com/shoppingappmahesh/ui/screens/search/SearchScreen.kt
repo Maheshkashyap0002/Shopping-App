@@ -45,7 +45,7 @@ fun SearchScreen(
         topBar = {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "Search Plants",
+                    text = "Search ",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )

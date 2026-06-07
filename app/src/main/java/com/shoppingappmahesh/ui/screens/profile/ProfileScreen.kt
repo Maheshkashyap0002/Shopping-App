@@ -124,6 +124,14 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value =  user?.phone ?: "" ,
+                    onValueChange = { },
+                    label = { Text("Phone") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 // Picture Edit button

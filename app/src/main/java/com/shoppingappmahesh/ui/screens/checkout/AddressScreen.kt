@@ -1,6 +1,7 @@
 package com.shoppingappmahesh.ui.screens.checkout
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +25,8 @@ import com.shoppingappmahesh.ui.screens.cart.viewmodel.CartViewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.shoppingappmahesh.ui.screens.checkout.viewmodel.CheckoutViewModel
+
+import com.shoppingappmahesh.ui.components.SwipeToPayButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,29 +80,28 @@ fun AddressScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.height(100.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Button(
-                    onClick = { 
-                        val intent = Intent(context, RazorpayActivity::class.java).apply {
-                            putExtra("amount", totalAmount)
-                            putExtra("phone", phone)
-                            putExtra("email", "mahesh@example.com") // Replace with user's actual email
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.Blue)
+                } else {
+                    SwipeToPayButton(
+                        amount = totalAmount,
+                        enabled = name.isNotEmpty() && phone.isNotEmpty() && address.isNotEmpty(),
+                        onSwipeComplete = {
+                            val intent = Intent(context, RazorpayActivity::class.java).apply {
+                                putExtra("amount", totalAmount)
+                                putExtra("phone", phone)
+                                putExtra("email", "customer@example.com")
+                            }
+                            razorpayLauncher.launch(intent)
                         }
-                        razorpayLauncher.launch(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(64.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    enabled = name.isNotEmpty() && phone.isNotEmpty() && address.isNotEmpty() && !isLoading
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Save Address", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
+                    )
                 }
             }
         }
