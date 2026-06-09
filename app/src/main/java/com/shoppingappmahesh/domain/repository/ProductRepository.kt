@@ -12,4 +12,5 @@ interface ProductRepository {
     suspend fun addProduct(product: Product): Result<Unit>
     suspend fun updateProduct(product: Product): Result<Unit>
     suspend fun deleteProduct(productId: String): Result<Unit>
+    suspend fun uploadImage(uri: android.net.Uri): Result<String>
 }

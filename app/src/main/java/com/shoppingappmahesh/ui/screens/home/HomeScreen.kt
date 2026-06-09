@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -30,7 +31,6 @@ import com.shoppingappmahesh.domain.model.Category
 import com.shoppingappmahesh.domain.model.Product
 import com.shoppingappmahesh.ui.navigation.Screen
 import com.shoppingappmahesh.ui.screens.home.viewmodel.HomeViewModel
-
 import com.shoppingappmahesh.ui.screens.cart.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,6 +54,17 @@ fun HomeScreen(
                 onSearchClick = { navController.navigate(Screen.Search.route) },
                 onCartClick = { navController.navigate(Screen.Cart.route) }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Screen.Chat.route) },
+                containerColor = Color.Black,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.padding(bottom = 110.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "Chat with ShopGPT")
+            }
         }
     ) { paddingValues ->
         if (isLoading) {

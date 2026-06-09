@@ -25,6 +25,7 @@ import com.shoppingappmahesh.ui.screens.order.OrderDetailsScreen
 import com.shoppingappmahesh.ui.screens.admin.AdminDashboard
 import com.shoppingappmahesh.ui.screens.admin.AdminAddProductScreen
 import com.shoppingappmahesh.ui.screens.search.SearchScreen
+import com.shoppingappmahesh.ui.screens.chat.ChatScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -59,6 +60,9 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Search.route) {
             SearchScreen(navController)
         }
+        composable(Screen.Chat.route) {
+            ChatScreen(navController)
+        }
         composable(Screen.ProductDetails.route) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             ProductDetailsScreen(navController, productId)
@@ -88,8 +92,9 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.AdminDashboard.route) {
             AdminDashboard(navController)
         }
-        composable(Screen.AdminAddProduct.route) {
-            AdminAddProductScreen(navController)
+        composable(Screen.AdminAddProduct.route) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId")
+            AdminAddProductScreen(navController, productId)
         }
     }
 }

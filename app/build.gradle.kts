@@ -76,6 +76,9 @@ dependencies {
     // DataStore
     implementation(libs.datastore.preferences)
 
+    // Gemini AI
+    implementation(libs.generativeai)
+
     // Razorpay
     implementation(libs.razorpay)
 

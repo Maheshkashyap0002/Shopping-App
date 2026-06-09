@@ -9,6 +9,7 @@ sealed class Screen(val route: String) {
     data object ProfileSetup : Screen("profile_setup")
     data object Home : Screen("home")
     data object Search : Screen("search")
+    data object Chat : Screen("chat")
     data object ProductDetails : Screen("product/{productId}") {
         fun createRoute(productId: String) = "product/$productId"
     }
@@ -24,5 +25,7 @@ sealed class Screen(val route: String) {
         fun createRoute(orderId: String) = "order_details/$orderId"
     }
     data object AdminDashboard : Screen("admin_dashboard")
-    data object AdminAddProduct : Screen("admin_add_product")
+    data object AdminAddProduct : Screen("admin_add_product?productId={productId}") {
+        fun createRoute(productId: String? = null) = if (productId != null) "admin_add_product?productId=$productId" else "admin_add_product"
+    }
 }

@@ -105,4 +105,14 @@ class ProductRepositoryImpl @Inject constructor(
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    override suspend fun uploadImage(uri: android.net.Uri): Result<String> = try {
+        val storageRef = com.google.firebase.storage.FirebaseStorage.getInstance().reference
+        val fileRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
+        val uploadTask = fileRef.putFile(uri).await()
+        val downloadUrl = fileRef.downloadUrl.await()
+        Result.success(downloadUrl.toString())
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

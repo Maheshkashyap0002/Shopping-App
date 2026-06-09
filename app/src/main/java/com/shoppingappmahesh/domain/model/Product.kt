@@ -8,5 +8,6 @@ data class Product(
     val discountPrice: Double = 0.0,
     val stock: Int = 0,
     val categoryId: String = "",
+    val userId: String = "", // Added to track owner
     val images: List<String> = emptyList()
 )

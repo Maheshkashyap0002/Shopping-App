@@ -6,10 +6,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.shoppingappmahesh.data.repository.AuthRepositoryImpl
 import com.shoppingappmahesh.data.repository.CartRepositoryImpl
+import com.shoppingappmahesh.data.repository.ChatRepositoryImpl
 import com.shoppingappmahesh.data.repository.OrderRepositoryImpl
 import com.shoppingappmahesh.data.repository.ProductRepositoryImpl
 import com.shoppingappmahesh.domain.repository.AuthRepository
 import com.shoppingappmahesh.domain.repository.CartRepository
+import com.shoppingappmahesh.domain.repository.ChatRepository
 import com.shoppingappmahesh.domain.repository.OrderRepository
 import com.shoppingappmahesh.domain.repository.ProductRepository
 import dagger.Module
@@ -60,5 +62,16 @@ object AppModule {
     @Singleton
     fun provideOrderRepository(database: FirebaseDatabase): OrderRepository {
         return OrderRepositoryImpl(database)
+    }
+
+    @Provides
+    @Singleton
+    fun provideChatRepository(
+        productRepository: ProductRepository,
+        cartRepository: CartRepository,
+        orderRepository: OrderRepository,
+        authRepository: AuthRepository
+    ): ChatRepository {
+        return ChatRepositoryImpl(productRepository, cartRepository, orderRepository, authRepository)
     }
 }
