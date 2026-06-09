@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.shoppingappmahesh.R
 import com.shoppingappmahesh.ui.navigation.Screen
+import com.shoppingappmahesh.ui.screens.auth.viewmodel.AuthNavigationEvent
 import com.shoppingappmahesh.ui.screens.auth.viewmodel.AuthViewModel
 
 @Composable
@@ -32,18 +33,19 @@ fun LoginScreen(
 ) {
     var phoneNumber by remember { mutableStateOf("") }
     val isLoading by viewModel.isLoading.collectAsState()
-    val isCodeSent by viewModel.isCodeSent.collectAsState()
     val error by viewModel.error.collectAsState()
     val activity = LocalActivity.current
 
-    LaunchedEffect(isCodeSent) {
-        if (isCodeSent) {
-            navController.navigate(Screen.Otp.createRoute(phoneNumber))
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            if (event is AuthNavigationEvent.NavigateToOtp) {
+                navController.navigate(Screen.Otp.createRoute(event.phoneNumber))
+                viewModel.resetState()
+            }
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image with Gradient Overlay
         Image(
             painter = painterResource(id = R.drawable.background),
             contentDescription = null,
@@ -61,7 +63,6 @@ fun LoginScreen(
                 )
         )
 
-        // Login Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -145,7 +146,7 @@ fun LoginScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(30.dp)) // Space for bottom navigation area if visible
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }

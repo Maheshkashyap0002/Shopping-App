@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.shoppingappmahesh.ui.navigation.Screen
+import com.shoppingappmahesh.ui.screens.auth.viewmodel.AuthNavigationEvent
 import com.shoppingappmahesh.ui.screens.auth.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,23 +38,26 @@ fun OtpScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val activity = LocalActivity.current
     
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
-    val isProfileComplete by viewModel.isProfileComplete.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val timer by viewModel.resendTimer.collectAsState()
 
-    LaunchedEffect(isLoggedIn, isProfileComplete) {
-        if (isLoggedIn) {
-            if (isProfileComplete) {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo("auth_flow") { inclusive = true }
-                    launchSingleTop = true
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                is AuthNavigationEvent.NavigateToHome -> {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo("auth_flow") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-            } else {
-                navController.navigate(Screen.ProfileSetup.route) {
-                    launchSingleTop = true
+                is AuthNavigationEvent.NavigateToProfileSetup -> {
+                    navController.navigate(Screen.ProfileSetup.route) {
+                        popUpTo(Screen.Otp.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
+                else -> {}
             }
         }
     }
@@ -95,7 +99,7 @@ fun OtpScreen(
                 color = Color.Gray
             )
             Text(
-                text = "+91 $phoneNumber",
+                text = " $phoneNumber",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Blue
@@ -103,7 +107,6 @@ fun OtpScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Premium OTP Input
             OtpInputField(
                 otpValue = otpValue,
                 onOtpValueChange = {
@@ -145,7 +148,6 @@ fun OtpScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-            //    enabled = otpValue.length == 6 && !isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     disabledContainerColor = Color.Black.copy(alpha = 0.5f)

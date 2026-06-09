@@ -16,6 +16,7 @@ import com.shoppingappmahesh.ui.navigation.Screen
 import com.shoppingappmahesh.ui.screens.auth.viewmodel.AuthViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(
@@ -23,8 +24,6 @@ fun SplashScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val scale = remember { Animatable(0f) }
-    val isLoggedInState by viewModel.isLoggedIn.collectAsState()
-    val isProfileComplete by viewModel.isProfileComplete.collectAsState()
 
     LaunchedEffect(key1 = true) {
         scale.animateTo(
@@ -38,7 +37,11 @@ fun SplashScreen(
         )
         delay(2000L)
         
-        if (isLoggedInState) {
+        // Use non-blocking state check for initial navigation
+        val isLoggedIn = viewModel.isLoggedIn.value
+        val isProfileComplete = viewModel.isProfileComplete.value
+        
+        if (isLoggedIn) {
             if (isProfileComplete) {
                 navController.navigate(Screen.Home.route) {
                     popUpTo(Screen.Splash.route) { inclusive = true }

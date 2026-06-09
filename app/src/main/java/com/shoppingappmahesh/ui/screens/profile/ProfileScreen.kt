@@ -178,9 +178,6 @@ fun ProfileScreen(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 ProfileMenuItem(Icons.Default.Logout, "Logout", textColor = Color.Red) {
                     viewModel.logout()
-                    navController.navigate("auth_flow") {
-                        popUpTo(0) { inclusive = true }
-                    }
                 }
             }
         }

@@ -11,17 +11,28 @@ import com.google.firebase.auth.PhoneAuthProvider
 import com.shoppingappmahesh.domain.model.User
 import com.shoppingappmahesh.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
+sealed class AuthNavigationEvent {
+    object NavigateToHome : AuthNavigationEvent()
+    object NavigateToProfileSetup : AuthNavigationEvent()
+    data class NavigateToOtp(val phoneNumber: String) : AuthNavigationEvent()
+}
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
+
+    private val _navigationEvent = MutableSharedFlow<AuthNavigationEvent>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
 
     private val _verificationId = MutableStateFlow("")
     val verificationId = _verificationId.asStateFlow()
@@ -47,13 +58,30 @@ class AuthViewModel @Inject constructor(
     private var timerJob: kotlinx.coroutines.Job? = null
 
     init {
-        checkProfileStatus()
+        // Listen for Auth state changes
+        auth.addAuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            val currentlyLogged = user != null
+            _isLoggedIn.value = currentlyLogged
+            
+            if (currentlyLogged) {
+                checkProfileStatus()
+            } else {
+                _isProfileComplete.value = false
+                _isLoading.value = false
+            }
+        }
     }
 
     private fun checkProfileStatus() {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            _isProfileComplete.value = repository.isProfileComplete(uid)
+            try {
+                val isComplete = repository.isProfileComplete(uid)
+                _isProfileComplete.value = isComplete
+            } catch (e: Exception) {
+                _isProfileComplete.value = false
+            }
         }
     }
 
@@ -72,6 +100,7 @@ class AuthViewModel @Inject constructor(
             repository.createUserProfile(user).onSuccess {
                 _isProfileComplete.value = true
                 _isLoading.value = false
+                _navigationEvent.emit(AuthNavigationEvent.NavigateToHome)
             }.onFailure {
                 _error.value = it.message
                 _isLoading.value = false
@@ -107,6 +136,9 @@ class AuthViewModel @Inject constructor(
                     _isLoading.value = false
                     _verificationId.value = verificationId
                     _isCodeSent.value = true
+                    viewModelScope.launch {
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToOtp(phoneNumber))
+                    }
                     startTimer()
                 }
             })
@@ -130,6 +162,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun verifyOtp(otp: String) {
+        if (otp.length < 6) {
+            _error.value = "Please enter a valid 6-digit OTP"
+            return
+        }
         if (_verificationId.value.isEmpty()) {
             _error.value = "Verification ID missing. Please resend OTP."
             return
@@ -140,22 +176,43 @@ class AuthViewModel @Inject constructor(
 
     private fun signInWithCredential(credential: PhoneAuthCredential) {
         _isLoading.value = true
+        _error.value = null
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val firebaseUser = task.result?.user
                     if (firebaseUser != null) {
                         viewModelScope.launch {
-                            val isComplete = repository.isProfileComplete(firebaseUser.uid)
-                            _isProfileComplete.value = isComplete
-                            _isLoggedIn.value = true
-                            _isLoading.value = false
+                            try {
+                                val isComplete = repository.isProfileComplete(firebaseUser.uid)
+                                _isProfileComplete.value = isComplete
+                                _isLoggedIn.value = true
+                                _isLoading.value = false
+                                if (isComplete) {
+                                    _navigationEvent.emit(AuthNavigationEvent.NavigateToHome)
+                                } else {
+                                    _navigationEvent.emit(AuthNavigationEvent.NavigateToProfileSetup)
+                                }
+                            } catch (e: Exception) {
+                                _isLoading.value = false
+                                _isLoggedIn.value = true
+                                _navigationEvent.emit(AuthNavigationEvent.NavigateToProfileSetup)
+                            }
                         }
+                    } else {
+                        _isLoading.value = false
+                        _error.value = "Authentication failed"
                     }
                 } else {
                     _isLoading.value = false
-                    _error.value = task.exception?.message
+                    _error.value = task.exception?.message ?: "Sign in failed"
                 }
             }
+    }
+
+    fun resetState() {
+        _isCodeSent.value = false
+        _error.value = null
+        _isLoading.value = false
     }
 }
