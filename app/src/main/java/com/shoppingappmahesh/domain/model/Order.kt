@@ -7,5 +7,8 @@ data class Order(
     val amount: Double = 0.0,
     val paymentId: String = "",
     val status: String = "PENDING",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val address: Address? = null,
+    val paymentMethod: String = "Online",
+    val customerEmail: String = ""
 )

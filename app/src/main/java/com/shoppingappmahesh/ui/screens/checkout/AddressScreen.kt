@@ -1,13 +1,17 @@
 package com.shoppingappmahesh.ui.screens.checkout
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,14 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.shoppingappmahesh.ui.components.SwipeToPayButton
 import com.shoppingappmahesh.ui.navigation.Screen
 import com.shoppingappmahesh.ui.screens.cart.viewmodel.CartViewModel
-
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import com.shoppingappmahesh.ui.screens.checkout.viewmodel.CheckoutViewModel
-
-import com.shoppingappmahesh.ui.components.SwipeToPayButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,16 +35,11 @@ fun AddressScreen(
     cartViewModel: CartViewModel = hiltViewModel(),
     checkoutViewModel: CheckoutViewModel = hiltViewModel()
 ) {
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var state by remember { mutableStateOf("") }
-    var pincode by remember { mutableStateOf("") }
-
     val totalAmount by cartViewModel.totalAmount.collectAsState()
     val orderId by checkoutViewModel.orderPlaced.collectAsState()
     val isLoading by checkoutViewModel.isLoading.collectAsState()
+    val selectedAddress by checkoutViewModel.selectedAddress.collectAsState()
+    val currentUser by checkoutViewModel.currentUser.collectAsState()
     
     val context = LocalContext.current
     var lastPaymentId by remember { mutableStateOf("") }
@@ -59,49 +54,59 @@ fun AddressScreen(
         }
     }
 
+    var finalAmount by remember { mutableStateOf(0.0) }
+
     LaunchedEffect(orderId) {
         orderId?.let { id ->
-            navController.navigate(Screen.BookingSuccess.createRoute(id, lastPaymentId, totalAmount)) {
+            navController.navigate(Screen.BookingSuccess.createRoute(id, lastPaymentId, finalAmount)) {
                 popUpTo(Screen.Cart.route) { inclusive = true }
             }
         }
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color(0xFFF7F7F7),
         topBar = {
-            TopAppBar(
-                title = { Text("Delivery Address", fontWeight = FontWeight.Bold) },
+            CenterAlignedTopAppBar(
+                title = { Text("Checkout", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 8.dp
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = Color.Blue)
-                } else {
-                    SwipeToPayButton(
-                        amount = totalAmount,
-                        enabled = name.isNotEmpty() && phone.isNotEmpty() && address.isNotEmpty(),
-                        onSwipeComplete = {
-                            val intent = Intent(context, RazorpayActivity::class.java).apply {
-                                putExtra("amount", totalAmount)
-                                putExtra("phone", phone)
-                                putExtra("email", "customer@example.com")
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.Black)
+                    } else {
+                        SwipeToPayButton(
+                            amount = totalAmount,
+                            enabled = selectedAddress != null,
+                            onSwipeComplete = {
+                                if (selectedAddress != null) {
+                                    finalAmount = totalAmount
+                                    val intent = Intent(context, RazorpayActivity::class.java).apply {
+                                        putExtra("amount", totalAmount)
+                                        putExtra("phone", selectedAddress?.phone ?: currentUser?.phone ?: "")
+                                        putExtra("email", currentUser?.email ?: "")
+                                    }
+                                    razorpayLauncher.launch(intent)
+                                }
                             }
-                            razorpayLauncher.launch(intent)
-                        }
-                    )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -110,20 +115,91 @@ fun AddressScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Shipping Information", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            // Address Section
+            SectionHeader("Shipping Address")
             
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Flat, House no., Building") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = city, onValueChange = { city = it }, label = { Text("City") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(value = state, onValueChange = { state = it }, label = { Text("State") }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
-                OutlinedTextField(value = pincode, onValueChange = { pincode = it }, label = { Text("Pincode") }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
+            if (selectedAddress != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    onClick = { navController.navigate(Screen.AddressList.createRoute(isFromCheckout = true)) }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = when(selectedAddress?.addressType) {
+                                "Home" -> Icons.Default.Home
+                                "Work" -> Icons.Default.Work
+                                else -> Icons.Default.LocationOn
+                            },
+                            contentDescription = null,
+                            tint = Color.Black,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(selectedAddress?.fullName ?: "", fontWeight = FontWeight.Bold)
+                            Text("${selectedAddress?.houseNo}, ${selectedAddress?.street}", fontSize = 14.sp, color = Color.Gray)
+                            Text("${selectedAddress?.city}, ${selectedAddress?.state} - ${selectedAddress?.pincode}", fontSize = 14.sp, color = Color.Gray)
+                        }
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
+                    }
+                }
+            } else {
+                Button(
+                    onClick = { navController.navigate(Screen.AddressList.createRoute(isFromCheckout = true)) },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Select Delivery Address")
+                }
             }
+
+            // Order Summary
+            SectionHeader("Order Summary")
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Subtotal", color = Color.Gray)
+                        Text("₹$totalAmount", fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Shipping", color = Color.Gray)
+                        Text("FREE", color = Color(0xFF2D6A4F), fontWeight = FontWeight.Bold)
+                    }
+                    HorizontalDivider()
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total Amount", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("₹$totalAmount", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    )
 }

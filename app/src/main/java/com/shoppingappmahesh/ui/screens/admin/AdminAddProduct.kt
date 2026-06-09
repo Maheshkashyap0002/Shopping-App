@@ -32,7 +32,7 @@ import com.shoppingappmahesh.ui.screens.admin.viewmodel.AdminViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AdminAddProductScreen(
     navController: NavHostController,
@@ -47,24 +47,38 @@ fun AdminAddProductScreen(
     var price by remember { mutableStateOf("") }
     var discountPrice by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("10") }
-    var categoryId by remember { mutableStateOf("all") }
+    
+    val predefinedCategories = listOf("Clothes", "Mobiles", "Shoes", "Watches", "Laptops", "Groceries", "Home", "Beauty")
+    var categoryId by remember { mutableStateOf("Clothes") }
+    var manualCategory by remember { mutableStateOf("") }
+    var isOtherSelected by remember { mutableStateOf(false) }
     
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var existingImageUrl by remember { mutableStateOf<String?>(null) }
     var isUploading by remember { mutableStateOf(false) }
 
+    val products by viewModel.myProducts.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
     // Load existing product if editing
-    LaunchedEffect(productId) {
-        if (productId != null) {
-            viewModel.myProducts.first().find { it.id == productId }?.let { prod ->
+    LaunchedEffect(productId, products) {
+        if (productId != null && products.isNotEmpty()) {
+            products.find { it.id == productId }?.let { prod ->
                 name = prod.name
                 description = prod.description
                 price = prod.price.toString()
                 discountPrice = prod.discountPrice.toString()
                 stock = prod.stock.toString()
-                categoryId = prod.categoryId
+                
+                if (predefinedCategories.any { it.equals(prod.categoryId, ignoreCase = true) }) {
+                    categoryId = prod.categoryId
+                    isOtherSelected = false
+                } else {
+                    categoryId = "Other"
+                    manualCategory = prod.categoryId
+                    isOtherSelected = true
+                }
+                
                 existingImageUrl = prod.images.firstOrNull()
             }
         }
@@ -149,14 +163,38 @@ fun AdminAddProductScreen(
             OutlinedTextField(value = stock, onValueChange = { stock = it }, label = { Text("Stock Quantity") }, modifier = Modifier.fillMaxWidth())
             
             Text("Category:", modifier = Modifier.align(Alignment.Start))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("all", "electronics", "fashion").forEach { cat ->
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                predefinedCategories.forEach { cat ->
                     FilterChip(
-                        selected = categoryId == cat,
-                        onClick = { categoryId = cat },
-                        label = { Text(cat.replaceFirstChar { it.uppercase() }) }
+                        selected = categoryId == cat && !isOtherSelected,
+                        onClick = { 
+                            categoryId = cat
+                            isOtherSelected = false
+                        },
+                        label = { Text(cat) }
                     )
                 }
+                FilterChip(
+                    selected = isOtherSelected,
+                    onClick = { 
+                        isOtherSelected = true
+                        categoryId = "Other"
+                    },
+                    label = { Text("Other") }
+                )
+            }
+
+            if (isOtherSelected) {
+                OutlinedTextField(
+                    value = manualCategory,
+                    onValueChange = { manualCategory = it },
+                    label = { Text("Enter Custom Category") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -165,6 +203,12 @@ fun AdminAddProductScreen(
                 onClick = { 
                     if (selectedImageUri == null && existingImageUrl == null) {
                         Toast.makeText(context, "Please select an image", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    
+                    val finalCategory = if (isOtherSelected) manualCategory else categoryId
+                    if (finalCategory.isBlank()) {
+                        Toast.makeText(context, "Please select or enter a category", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     
@@ -177,7 +221,7 @@ fun AdminAddProductScreen(
                             price = price.toDoubleOrNull() ?: 0.0,
                             discountPrice = discountPrice.toDoubleOrNull() ?: 0.0,
                             stock = stock.toIntOrNull() ?: 0,
-                            categoryId = categoryId,
+                            categoryId = finalCategory,
                             images = if (existingImageUrl != null && selectedImageUri == null) listOf(existingImageUrl!!) else emptyList()
                         )
                         

@@ -170,7 +170,7 @@ fun ProfileScreen(
                     navController.navigate(Screen.OrderHistory.route)
                 }
                 ProfileMenuItem(Icons.Default.LocationOn, "Addresses") {
-                    navController.navigate(Screen.Address.route)
+                    navController.navigate(Screen.AddressList.route)
                 }
                 ProfileMenuItem(Icons.Default.AdminPanelSettings, "Admin Panel") {
                     navController.navigate(Screen.AdminDashboard.route)

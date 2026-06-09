@@ -76,7 +76,7 @@ fun CartScreen(
                         SummaryRow("Total Amount", "₹$totalAmount", isTotal = true)
                         Spacer(modifier = Modifier.height(20.dp))
                         Button(
-                            onClick = { navController.navigate(Screen.Address.route) },
+                            onClick = { navController.navigate(Screen.AddressList.createRoute(isFromCheckout = true)) },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)

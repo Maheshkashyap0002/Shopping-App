@@ -22,7 +22,9 @@ import com.shoppingappmahesh.ui.screens.home.SplashScreen
 import com.shoppingappmahesh.ui.screens.product.ProductDetailsScreen
 import com.shoppingappmahesh.ui.screens.cart.CartScreen
 import com.shoppingappmahesh.ui.screens.profile.ProfileScreen
+import com.shoppingappmahesh.ui.screens.checkout.AddressListScreen
 import com.shoppingappmahesh.ui.screens.checkout.AddressScreen
+import com.shoppingappmahesh.ui.screens.checkout.AddEditAddressScreen
 import com.shoppingappmahesh.ui.screens.checkout.BookingSuccessScreen
 import com.shoppingappmahesh.ui.screens.order.OrderHistoryScreen
 import com.shoppingappmahesh.ui.screens.order.OrderDetailsScreen
@@ -92,8 +94,16 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Profile.route) {
             ProfileScreen(navController)
         }
-        composable(Screen.Address.route) {
+        composable(Screen.Checkout.route) {
             AddressScreen(navController)
+        }
+        composable(Screen.AddressList.route) { backStackEntry ->
+            val isFromCheckout = backStackEntry.arguments?.getString("isFromCheckout")?.toBoolean() ?: false
+            AddressListScreen(navController, isFromCheckout = isFromCheckout)
+        }
+        composable(Screen.AddEditAddress.route) { backStackEntry ->
+            val addressId = backStackEntry.arguments?.getString("addressId")
+            AddEditAddressScreen(navController, addressId)
         }
         composable(Screen.BookingSuccess.route) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""

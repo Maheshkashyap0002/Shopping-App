@@ -4,11 +4,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.shoppingappmahesh.data.repository.AddressRepositoryImpl
 import com.shoppingappmahesh.data.repository.AuthRepositoryImpl
 import com.shoppingappmahesh.data.repository.CartRepositoryImpl
 import com.shoppingappmahesh.data.repository.ChatRepositoryImpl
 import com.shoppingappmahesh.data.repository.OrderRepositoryImpl
 import com.shoppingappmahesh.data.repository.ProductRepositoryImpl
+import com.shoppingappmahesh.domain.repository.AddressRepository
 import com.shoppingappmahesh.domain.repository.AuthRepository
 import com.shoppingappmahesh.domain.repository.CartRepository
 import com.shoppingappmahesh.domain.repository.ChatRepository
@@ -67,6 +69,12 @@ object AppModule {
     @Singleton
     fun provideOrderRepository(database: FirebaseDatabase): OrderRepository {
         return OrderRepositoryImpl(database)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddressRepository(database: FirebaseDatabase): AddressRepository {
+        return AddressRepositoryImpl(database)
     }
 
     @Provides

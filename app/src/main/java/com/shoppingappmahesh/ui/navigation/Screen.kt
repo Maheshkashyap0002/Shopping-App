@@ -15,12 +15,20 @@ sealed class Screen(val route: String) {
     }
     data object Cart : Screen("cart")
     data object Profile : Screen("profile")
-    data object Address : Screen("address")
+    data object AddressList : Screen("address_list?isFromCheckout={isFromCheckout}") {
+        fun createRoute(isFromCheckout: Boolean = false) = "address_list?isFromCheckout=$isFromCheckout"
+    }
+    data object AddEditAddress : Screen("add_edit_address?addressId={addressId}") {
+        fun createRoute(addressId: String? = null) = if (addressId != null) "add_edit_address?addressId=$addressId" else "add_edit_address"
+    }
     data object BookingSuccess : Screen("booking_success/{orderId}/{paymentId}/{amount}") {
         fun createRoute(orderId: String, paymentId: String, amount: Double) = 
             "booking_success/$orderId/$paymentId/$amount"
     }
     data object OrderHistory : Screen("order_history")
+    data object Checkout : Screen("checkout")
+
+
     data object OrderDetails : Screen("order_details/{orderId}") {
         fun createRoute(orderId: String) = "order_details/$orderId"
     }
