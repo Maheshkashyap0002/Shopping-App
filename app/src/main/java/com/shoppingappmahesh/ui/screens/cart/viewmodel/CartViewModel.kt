@@ -19,41 +19,44 @@ class CartViewModel @Inject constructor(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
-    val cartItems = _cartItems.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _totalAmount = MutableStateFlow(0.0)
-    val totalAmount = _totalAmount.asStateFlow()
+    private val userId: String? = authRepository.getCurrentUserId()
 
-    init {
-        loadCartItems()
+    val cartItems: StateFlow<List<CartItem>> = if (userId != null) {
+        cartRepository.getCartItems(userId)
+            .onStart { _isLoading.value = true }
+            .onEach { _isLoading.value = false }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+    } else {
+        MutableStateFlow(emptyList())
     }
 
-    private fun loadCartItems() {
-        val userId = authRepository.getCurrentUserId() ?: return
-        _isLoading.value = true
-        cartRepository.getCartItems(userId).onEach { items ->
-            _cartItems.value = items
-            _totalAmount.value = items.sumOf { it.productPrice * it.quantity }
-            _isLoading.value = false
-        }.launchIn(viewModelScope)
-    }
+    val totalAmount: StateFlow<Double> = cartItems.map { items ->
+        items.sumOf { it.productPrice * it.quantity }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0.0
+    )
 
     fun updateQuantity(productId: String, quantity: Int) {
-        val userId = authRepository.getCurrentUserId() ?: return
+        val uid = userId ?: return
         if (quantity < 1) return
         viewModelScope.launch {
-            cartRepository.updateQuantity(userId, productId, quantity)
+            cartRepository.updateQuantity(uid, productId, quantity)
         }
     }
 
     fun removeFromCart(productId: String) {
-        val userId = authRepository.getCurrentUserId() ?: return
+        val uid = userId ?: return
         viewModelScope.launch {
-            cartRepository.removeFromCart(userId, productId)
+            cartRepository.removeFromCart(uid, productId)
         }
     }
 }

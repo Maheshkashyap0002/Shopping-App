@@ -41,16 +41,19 @@ class AuthViewModel @Inject constructor(
     private val _isProfileComplete = MutableStateFlow(false)
     val isProfileComplete = _isProfileComplete.asStateFlow()
 
+    private val _resendTimer = MutableStateFlow(0)
+    val resendTimer = _resendTimer.asStateFlow()
+
+    private var timerJob: kotlinx.coroutines.Job? = null
+
     init {
         checkProfileStatus()
     }
 
     private fun checkProfileStatus() {
-        val uid = auth.currentUser?.uid
-        if (uid != null) {
-            viewModelScope.launch {
-                _isProfileComplete.value = repository.isProfileComplete(uid)
-            }
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _isProfileComplete.value = repository.isProfileComplete(uid)
         }
     }
 
@@ -76,15 +79,13 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private val _resendTimer = MutableStateFlow(60)
-    val resendTimer = _resendTimer.asStateFlow()
-
-    private var timerJob: kotlinx.coroutines.Job? = null
-
     fun sendOtp(phoneNumber: String, activity: Activity) {
+        if (_resendTimer.value > 0) return
+        
         _isLoading.value = true
         _error.value = null
-        _isCodeSent.value = false // Reset before sending
+        _isCodeSent.value = false
+
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(phoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)

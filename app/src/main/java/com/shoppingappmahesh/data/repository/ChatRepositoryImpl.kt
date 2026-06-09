@@ -10,6 +10,7 @@ import com.shoppingappmahesh.domain.repository.CartRepository
 import com.shoppingappmahesh.domain.repository.ChatRepository
 import com.shoppingappmahesh.domain.repository.OrderRepository
 import com.shoppingappmahesh.domain.repository.ProductRepository
+import com.shoppingappmahesh.di.GeminiApiKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,17 +22,20 @@ class ChatRepositoryImpl @Inject constructor(
     private val productRepository: ProductRepository,
     private val cartRepository: CartRepository,
     private val orderRepository: OrderRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    @param:GeminiApiKey private val apiKey: String
 ) : ChatRepository {
 
     private val _chatHistory = MutableStateFlow<List<ChatMessage>>(emptyList())
     override fun getChatHistory(): Flow<List<ChatMessage>> = _chatHistory.asStateFlow()
 
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-2.5-flash",
-        apiKey = "AQ.Ab8RN6KANwX4VIsrmZx3ZBNpsKMadv7cf5hAuDG_I_UCgXstAw",
-        systemInstruction = content {
-            text("""
+    private val generativeModel by lazy {
+        GenerativeModel(
+            modelName = "gemini-1.5-flash", // Reverted to 1.5-flash for stability (2.5 is currently unstable/503)
+            apiKey = apiKey,
+            systemInstruction = content {
+                text(
+                    """
                 You are ShopGPT, a highly capable AI shopping assistant for 'Fashion Bajar'. 
                 Your goal is to provide a personalized and helpful shopping experience.
                 
@@ -42,9 +46,11 @@ class ChatRepositoryImpl @Inject constructor(
                 4. Highlight savings (Discount Prices) to encourage purchases.
                 5. Use Emojis to make the conversation engaging.
                 6. When recommending, mention both Original Price and Discount Price if available.
-            """.trimIndent())
-        }
-    )
+            """.trimIndent()
+                )
+            }
+        )
+    }
 
     override suspend fun sendMessage(userMessage: String): Result<String> {
         return try {
@@ -105,7 +111,12 @@ class ChatRepositoryImpl @Inject constructor(
             Result.success(responseText)
         } catch (e: Exception) {
             Log.e("ShopGPT", "Chat Error", e)
-            _chatHistory.update { it + ChatMessage("Error: ${e.localizedMessage}", Participant.ERROR) }
+            val friendlyError = when {
+                e.message?.contains("503") == true || e.message?.contains("Unavailable") == true -> 
+                    "AI service is currently busy due to high demand. Please wait a moment and try again. 🙏"
+                else -> "Something went wrong. Please check your internet or try again later."
+            }
+            _chatHistory.update { it + ChatMessage(friendlyError, Participant.ERROR) }
             Result.failure(e)
         }
     }

@@ -15,26 +15,26 @@ class OrderViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _orders = MutableStateFlow<List<Order>>(emptyList())
-    val orders = _orders.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    init {
-        loadOrders()
-    }
+    private val userId: String? = authRepository.getCurrentUserId()
 
-    private fun loadOrders() {
-        val userId = authRepository.getCurrentUserId() ?: return
-        _isLoading.value = true
-        orderRepository.getOrders(userId).onEach { items ->
-            _orders.value = items.sortedByDescending { it.createdAt }
-            _isLoading.value = false
-        }.launchIn(viewModelScope)
+    val orders: StateFlow<List<Order>> = if (userId != null) {
+        orderRepository.getOrders(userId)
+            .onStart { _isLoading.value = true }
+            .onEach { _isLoading.value = false }
+            .map { list -> list.sortedByDescending { it.createdAt } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+    } else {
+        MutableStateFlow(emptyList())
     }
 
     fun getOrderById(orderId: String): Flow<Order?> {
-        return _orders.map { list -> list.find { it.orderId == orderId } }
+        return orders.map { list -> list.find { it.orderId == orderId } }
     }
 }

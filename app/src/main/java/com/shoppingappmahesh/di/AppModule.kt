@@ -19,6 +19,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import javax.inject.Qualifier
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GeminiApiKey
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -66,12 +71,18 @@ object AppModule {
 
     @Provides
     @Singleton
+    @GeminiApiKey
+    fun provideGeminiApiKey(): String = "AQ.Ab8RN6KANwX4VIsrmZx3ZBNpsKMadv7cf5hAuDG_I_UCgXstAw"
+
+    @Provides
+    @Singleton
     fun provideChatRepository(
         productRepository: ProductRepository,
         cartRepository: CartRepository,
         orderRepository: OrderRepository,
-        authRepository: AuthRepository
+        authRepository: AuthRepository,
+        @GeminiApiKey apiKey: String
     ): ChatRepository {
-        return ChatRepositoryImpl(productRepository, cartRepository, orderRepository, authRepository)
+        return ChatRepositoryImpl(productRepository, cartRepository, orderRepository, authRepository, apiKey)
     }
 }
