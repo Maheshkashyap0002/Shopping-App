@@ -39,6 +39,9 @@ fun AdminAddProductScreen(
     productId: String? = null,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
+    // Filter out the literal template string from NavGraph
+    val actualProductId = if (productId == "{productId}") null else productId
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -62,10 +65,11 @@ fun AdminAddProductScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // Load existing product if editing
-    LaunchedEffect(productId, products) {
-        if (productId != null && products.isNotEmpty()) {
-            products.find { it.id == productId }?.let { prod ->
+    LaunchedEffect(actualProductId, products) {
+        if (actualProductId != null && products.isNotEmpty()) {
+            products.find { it.id == actualProductId }?.let { prod ->
                 name = prod.name
+                manualProductId = prod.id
                 description = prod.description
                 price = prod.price.toString()
                 discountPrice = prod.discountPrice.toString()
@@ -108,7 +112,7 @@ fun AdminAddProductScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (productId == null) "Add Product" else "Update Product") },
+                title = { Text(if (actualProductId == null) "Add Product" else "Update Product") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -160,10 +164,16 @@ fun AdminAddProductScreen(
             OutlinedTextField(
                 value = manualProductId,
                 onValueChange = { manualProductId = it },
-                label = { Text("Product ID (Optional - Manual Entry)") },
+                label = { Text("Product ID (Required for tracking)") },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. MOBILE_001") },
-                enabled = productId == null // Only allow setting ID for new products
+                placeholder = { Text("e.g. MOBILE_001, LAPTOP_DELL_XPS") },
+                enabled = actualProductId == null, // Only allow setting ID for new products
+                isError = manualProductId.isEmpty() && actualProductId == null,
+                supportingText = { 
+                    if (manualProductId.isEmpty() && actualProductId == null) {
+                        Text("Unique Product ID is required to prevent merging")
+                    }
+                }
             )
 
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Product Name") }, modifier = Modifier.fillMaxWidth())
@@ -216,6 +226,11 @@ fun AdminAddProductScreen(
                         return@Button
                     }
                     
+                    if (actualProductId == null && manualProductId.isBlank()) {
+                        Toast.makeText(context, "Please enter a unique Product ID", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    
                     val finalCategory = if (isOtherSelected) manualCategory else categoryId
                     if (finalCategory.isBlank()) {
                         Toast.makeText(context, "Please select or enter a category", Toast.LENGTH_SHORT).show()
@@ -225,7 +240,7 @@ fun AdminAddProductScreen(
                     isUploading = true
                     scope.launch {
                         val product = Product(
-                            id = productId ?: manualProductId.ifBlank { "" },
+                            id = actualProductId ?: manualProductId.trim(),
                             name = name,
                             description = description,
                             price = price.toDoubleOrNull() ?: 0.0,
@@ -251,7 +266,7 @@ fun AdminAddProductScreen(
                 } else {
                     Icon(Icons.Default.CloudUpload, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (productId == null) "Upload & Save Product" else "Update Product")
+                    Text(if (actualProductId == null) "Upload & Save Product" else "Update Product")
                 }
             }
         }

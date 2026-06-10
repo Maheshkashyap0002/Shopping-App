@@ -39,7 +39,7 @@ fun AdminDashboard(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.AdminAddProduct.route) }) {
+            FloatingActionButton(onClick = { navController.navigate(Screen.AdminAddProduct.createRoute()) }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Product")
             }
         }
