@@ -10,5 +10,7 @@ data class Order(
     val createdAt: Long = System.currentTimeMillis(),
     val address: Address? = null,
     val paymentMethod: String = "Online",
-    val customerEmail: String = ""
+    val customerEmail: String = "",
+    val deliveryEstimate: String = "",
+    val adminPhone: String = "" // Phone number of the admin/seller responsible for this order
 )

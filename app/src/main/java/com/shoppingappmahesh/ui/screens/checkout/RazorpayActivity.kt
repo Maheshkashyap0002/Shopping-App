@@ -19,8 +19,9 @@ class RazorpayActivity : Activity(), PaymentResultListener {
     private fun startPayment() {
         val checkout = Checkout()
         // Essential: Set the key before calling open
-        checkout.setKeyID("rzp_live_Sxy8QuLWKIIHtg")
-        
+      // For Live  checkout.setKeyID("rzp_live_Sxy8QuLWKIIHtg")
+        checkout.setKeyID("rzp_test_SxaYxPl2MgoPdZ")
+
         try {
             val options = JSONObject()
             options.put("name", "Plant Shop")

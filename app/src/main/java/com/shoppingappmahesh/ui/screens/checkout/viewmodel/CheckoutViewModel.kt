@@ -64,7 +64,8 @@ class CheckoutViewModel @Inject constructor(
                     paymentId = paymentId,
                     status = "PAID",
                     createdAt = System.currentTimeMillis(),
-                    address = selectedAddress.value
+                    address = selectedAddress.value,
+                    adminPhone = cartItems.firstOrNull()?.adminPhone ?: ""
                 )
 
                 orderRepository.placeOrder(order).onSuccess { orderId ->

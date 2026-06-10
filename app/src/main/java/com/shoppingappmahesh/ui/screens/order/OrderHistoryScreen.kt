@@ -153,7 +153,7 @@ fun OrderItemCard(
             ) {
                 Text(
                     text = order.status,
-                    color = if (order.status == "PAID") Color(0xFF4CAF50) else Color.Red,
+                    color = if (order.status == "PAID" || order.status == "SHIPPED" || order.status == "OUT FOR DELIVERY" || order.status == "DELIVERED") Color(0xFF4CAF50) else Color.Red,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodySmall
                 )

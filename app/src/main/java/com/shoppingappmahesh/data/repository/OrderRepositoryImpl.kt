@@ -16,6 +16,7 @@ class OrderRepositoryImpl @Inject constructor(
     private val database: FirebaseDatabase
 ) : OrderRepository {
     override fun getOrders(userId: String): Flow<List<Order>> = callbackFlow {
+        val ref = database.getReference("orders").orderByChild("userId").equalTo(userId)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val orders = snapshot.children.mapNotNull { it.getValue(Order::class.java) }
@@ -26,7 +27,22 @@ class OrderRepositoryImpl @Inject constructor(
                 close(error.toException())
             }
         }
-        val ref = database.getReference("orders").orderByChild("userId").equalTo(userId)
+        ref.addValueEventListener(listener)
+        awaitClose { ref.removeEventListener(listener) }
+    }
+
+    override fun getAllOrders(): Flow<List<Order>> = callbackFlow {
+        val ref = database.getReference("orders")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val orders = snapshot.children.mapNotNull { it.getValue(Order::class.java) }
+                trySend(orders)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
         ref.addValueEventListener(listener)
         awaitClose { ref.removeEventListener(listener) }
     }
@@ -40,8 +56,14 @@ class OrderRepositoryImpl @Inject constructor(
         Result.failure(e)
     }
 
-    override suspend fun updateOrderStatus(orderId: String, status: String): Result<Unit> = try {
-        database.getReference("orders").child(orderId).child("status").setValue(status).await()
+    override suspend fun updateOrderStatus(orderId: String, status: String, deliveryEstimate: String): Result<Unit> = try {
+        val updates = mutableMapOf<String, Any>(
+            "status" to status
+        )
+        if (deliveryEstimate.isNotEmpty()) {
+            updates["deliveryEstimate"] = deliveryEstimate
+        }
+        database.getReference("orders").child(orderId).updateChildren(updates).await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)

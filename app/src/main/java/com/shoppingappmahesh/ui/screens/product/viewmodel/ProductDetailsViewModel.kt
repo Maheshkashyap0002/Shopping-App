@@ -54,7 +54,8 @@ class ProductDetailsViewModel @Inject constructor(
                 quantity = 1,
                 productName = product.name,
                 productPrice = product.discountPrice,
-                productImage = product.images.firstOrNull() ?: ""
+                productImage = product.images.firstOrNull() ?: "",
+                adminPhone = product.adminPhone
             )
             cartRepository.addToCart(cartItem).onSuccess {
                 _isAddedToCart.value = true

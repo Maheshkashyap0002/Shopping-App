@@ -43,6 +43,7 @@ fun AdminAddProductScreen(
     val scope = rememberCoroutineScope()
     
     var name by remember { mutableStateOf("") }
+    var manualProductId by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var discountPrice by remember { mutableStateOf("") }
@@ -156,6 +157,15 @@ fun AdminAddProductScreen(
                 }
             }
 
+            OutlinedTextField(
+                value = manualProductId,
+                onValueChange = { manualProductId = it },
+                label = { Text("Product ID (Optional - Manual Entry)") },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("e.g. MOBILE_001") },
+                enabled = productId == null // Only allow setting ID for new products
+            )
+
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Product Name") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Original Price") }, modifier = Modifier.fillMaxWidth())
@@ -215,7 +225,7 @@ fun AdminAddProductScreen(
                     isUploading = true
                     scope.launch {
                         val product = Product(
-                            id = productId ?: "",
+                            id = productId ?: manualProductId.ifBlank { "" },
                             name = name,
                             description = description,
                             price = price.toDoubleOrNull() ?: 0.0,
