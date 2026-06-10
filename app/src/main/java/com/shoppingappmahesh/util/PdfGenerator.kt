@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.shoppingappmahesh.domain.model.Order
+import com.shoppingappmahesh.ui.theme.PremiumBlue
 import java.io.File
 import java.io.OutputStream
 import java.text.SimpleDateFormat
@@ -61,7 +62,7 @@ object PdfGenerator {
         paint.color = Color.BLACK
         paint.textSize = 10f
         canvas.drawText("Mahesh Fashion Ltd.", PAGE_WIDTH - 200f, 50f, paint)
-        canvas.drawText("Sector 45, Kamrid ", PAGE_WIDTH - 200f, 65f, paint)
+        canvas.drawText("Kamrid, Champa Chhattisgarh", PAGE_WIDTH - 200f, 65f, paint)
         canvas.drawText("Support: +91 7724858379", PAGE_WIDTH - 200f, 80f, paint)
         canvas.drawText("Email: maheshkashyap0002@gmail.com", PAGE_WIDTH - 200f, 95f, paint)
 
@@ -75,9 +76,10 @@ object PdfGenerator {
         val invoiceNo = "INV-${System.currentTimeMillis().toString().takeLast(6)}"
         canvas.drawText("Invoice No: $invoiceNo", MARGIN, 145f, paint)
         canvas.drawText("Order ID: ${order.orderId}", MARGIN, 160f, paint)
+        canvas.drawText("Payment ID: ${order.paymentId}", MARGIN, 175f, paint)
         
         val sdf = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-        canvas.drawText("Date: ${sdf.format(Date(order.createdAt))}", MARGIN, 175f, paint)
+        canvas.drawText("Date: ${sdf.format(Date(order.createdAt))}", MARGIN, 190f, paint)
 
         // 3. Customer Information
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)

@@ -28,6 +28,7 @@ import java.util.*
 import com.shoppingappmahesh.ui.components.BannerAdView
 
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Share
 import com.shoppingappmahesh.util.PdfGenerator
 import androidx.compose.ui.platform.LocalContext
 
@@ -74,11 +75,22 @@ fun OrderHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(orders) { order ->
-                    OrderItemCard(order, {
-                        navController.navigate(Screen.OrderDetails.createRoute(order.orderId))
-                    }, {
-                        PdfGenerator.generateInvoice(context, order)
-                    })
+                    OrderItemCard(
+                        order = order,
+                        onClick = {
+                            navController.navigate(Screen.OrderDetails.createRoute(order.orderId))
+                        },
+                        onDownloadClick = {
+                            PdfGenerator.generateInvoice(context, order) { uri ->
+                                uri?.let { PdfGenerator.openPdf(context, it) }
+                            }
+                        },
+                        onShareClick = {
+                            PdfGenerator.generateInvoice(context, order) { uri ->
+                                uri?.let { PdfGenerator.sharePdf(context, it) }
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -86,7 +98,12 @@ fun OrderHistoryScreen(
 }
 
 @Composable
-fun OrderItemCard(order: Order, onClick: () -> Unit, onDownloadClick: () -> Unit) {
+fun OrderItemCard(
+    order: Order,
+    onClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    onShareClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,8 +123,24 @@ fun OrderItemCard(order: Order, onClick: () -> Unit, onDownloadClick: () -> Unit
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )
-                IconButton(onClick = onDownloadClick, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Download, contentDescription = "Download Receipt", tint = Color.Blue, modifier = Modifier.size(20.dp))
+                Row {
+                    IconButton(onClick = onShareClick, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Share Receipt",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = onDownloadClick, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = "Download Receipt",
+                            tint = Color.Blue,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
             
@@ -146,7 +179,7 @@ fun OrderItemCard(order: Order, onClick: () -> Unit, onDownloadClick: () -> Unit
                 Text(
                     text = "₹${order.amount}",
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.Blue,
+                    color = Color.Green.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
