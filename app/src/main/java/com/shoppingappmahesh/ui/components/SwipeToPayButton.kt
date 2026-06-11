@@ -87,7 +87,7 @@ fun SwipeToPayButton(
                             coroutineScope.launch {
                                 offsetX.animateTo(maxOffset)
                                 onSwipeComplete()
-                                offsetX.animateTo(0f) // Reset after complete
+                                // Stay at end position for premium look
                             }
                         } else {
                             coroutineScope.launch {

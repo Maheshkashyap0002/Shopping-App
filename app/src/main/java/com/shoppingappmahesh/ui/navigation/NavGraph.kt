@@ -13,6 +13,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.shoppingappmahesh.ui.screens.auth.LoginScreen
 import com.shoppingappmahesh.ui.screens.auth.OtpScreen
 import com.shoppingappmahesh.ui.screens.auth.ProfileSetupScreen
@@ -121,7 +123,14 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.AdminDashboard.route) {
             AdminDashboard(navController)
         }
-        composable(Screen.AdminAddProduct.route) { backStackEntry ->
+        composable(
+            route = Screen.AdminAddProduct.route,
+            arguments = listOf(navArgument("productId") { 
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId")
             AdminAddProductScreen(navController, productId)
         }

@@ -39,9 +39,9 @@ fun AdminAddProductScreen(
     productId: String? = null,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
-    // Filter out the literal template string from NavGraph
-    val actualProductId = if (productId == "{productId}") null else productId
-
+    // Correctly identify if we are in Edit Mode or Add Mode
+    val isEditMode = productId != null && productId != "{productId}"
+    
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -65,9 +65,9 @@ fun AdminAddProductScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // Load existing product if editing
-    LaunchedEffect(actualProductId, products) {
-        if (actualProductId != null && products.isNotEmpty()) {
-            products.find { it.id == actualProductId }?.let { prod ->
+    LaunchedEffect(productId, products) {
+        if (isEditMode && products.isNotEmpty()) {
+            products.find { it.id == productId }?.let { prod ->
                 name = prod.name
                 manualProductId = prod.id
                 description = prod.description
@@ -112,7 +112,7 @@ fun AdminAddProductScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (actualProductId == null) "Add Product" else "Update Product") },
+                title = { Text(if (!isEditMode) "Add Product" else "Update Product") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -167,10 +167,10 @@ fun AdminAddProductScreen(
                 label = { Text("Product ID (Required for tracking)") },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("e.g. MOBILE_001, LAPTOP_DELL_XPS") },
-                enabled = actualProductId == null, // Only allow setting ID for new products
-                isError = manualProductId.isEmpty() && actualProductId == null,
+                enabled = !isEditMode, // Only allow setting ID for new products
+                isError = manualProductId.isEmpty() && !isEditMode,
                 supportingText = { 
-                    if (manualProductId.isEmpty() && actualProductId == null) {
+                    if (manualProductId.isEmpty() && !isEditMode) {
                         Text("Unique Product ID is required to prevent merging")
                     }
                 }
@@ -226,7 +226,7 @@ fun AdminAddProductScreen(
                         return@Button
                     }
                     
-                    if (actualProductId == null && manualProductId.isBlank()) {
+                    if (!isEditMode && manualProductId.isBlank()) {
                         Toast.makeText(context, "Please enter a unique Product ID", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
@@ -240,7 +240,7 @@ fun AdminAddProductScreen(
                     isUploading = true
                     scope.launch {
                         val product = Product(
-                            id = actualProductId ?: manualProductId.trim(),
+                            id = if (isEditMode) productId!! else manualProductId.trim(),
                             name = name,
                             description = description,
                             price = price.toDoubleOrNull() ?: 0.0,
@@ -266,7 +266,7 @@ fun AdminAddProductScreen(
                 } else {
                     Icon(Icons.Default.CloudUpload, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (actualProductId == null) "Upload & Save Product" else "Update Product")
+                    Text(if (!isEditMode) "Upload & Save Product" else "Update Product")
                 }
             }
         }
