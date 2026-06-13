@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -95,12 +96,19 @@ fun ChatScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             item {
-                WelcomeCard()
+                SelectionContainer {
+                    WelcomeCard()
+                }
+
             }
-            
+
             items(chatHistory) { message ->
-                ChatMessageItem(message)
+                SelectionContainer {
+                    ChatMessageItem(message)
+                }
+
             }
 
             if (isLoading) {

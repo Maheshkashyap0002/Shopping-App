@@ -79,7 +79,7 @@ com.shoppingappmahesh
 *   Set Realtime Database rules to allow `auth != null` access.
 
 ### 2. Razorpay Setup
-*   The project is pre-configured with **Live Key**: `rzp_live_Sxy8QuLWKIIHtg`.
+*   The project is pre-configured with **Live Key**: `Added Your API KEY`.
 *   To change keys, update `RazorpayActivity.kt`.
 
 ### 3. AdMob Setup

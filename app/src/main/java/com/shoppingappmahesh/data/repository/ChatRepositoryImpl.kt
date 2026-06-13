@@ -31,7 +31,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     private val generativeModel by lazy {
         GenerativeModel(
-            modelName = "gemini-2.5-flash",
+            modelName = "gemini-3.5-flash",
             apiKey = apiKey,
             systemInstruction = content {
                 text(
@@ -54,7 +54,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     private val fallbackModel by lazy {
         GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = "gemini-2.5-flash",
             apiKey = apiKey,
             systemInstruction = content {
                 text(
@@ -81,12 +81,12 @@ class ChatRepositoryImpl @Inject constructor(
         return try {
             val combinedContext = prepareContext(userMessage)
             
-            // Try with primary model (2.5)
+            // Try with primary model (3.5)
             val response = try {
                 generativeModel.generateContent(content { text(combinedContext) })
             } catch (e: Exception) {
                 if (e.message?.contains("503") == true || e.message?.contains("Unavailable") == true) {
-                    Log.w("ShopGPT", "Primary model 2.5 unavailable, switching to fallback 1.5")
+                    Log.w("ShopGPT", "Primary model 3.5 unavailable, switching to fallback 2.5")
                     fallbackModel.generateContent(content { text(combinedContext) })
                 } else {
                     throw e
