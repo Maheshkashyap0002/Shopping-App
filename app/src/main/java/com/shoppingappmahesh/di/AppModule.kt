@@ -80,7 +80,7 @@ object AppModule {
     @Provides
     @Singleton
     @GeminiApiKey
-    fun provideGeminiApiKey(): String = "AQ.Ab8RN6KANwX4VIsrmZx3ZBNpsKMadv7cf5hAuDG_I_UCgXstAw"
+    fun provideGeminiApiKey(): String = "Paste Here Api Key" // Replace with your Gemini api key
 
     @Provides
     @Singleton
