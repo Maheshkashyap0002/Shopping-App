@@ -1,6 +1,5 @@
 package com.shoppingappmahesh.ui.screens.checkout
 
-import com.shoppingappmahesh.BuildConfig
 import android.app.Activity
 import android.os.Bundle
 import android.util.Log
@@ -21,7 +20,7 @@ class RazorpayActivity : Activity(), PaymentResultListener {
         val checkout = Checkout()
 
         // Essential: Set the key before calling open
-        checkout.setKeyID(BuildConfig.RAZORPAY_TEST_KEY)
+        checkout.setKeyID("Paste Your razorpay api key ") // replace with live key
 
         try {
             val options = JSONObject()

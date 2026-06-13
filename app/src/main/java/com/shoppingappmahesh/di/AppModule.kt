@@ -1,6 +1,5 @@
 package com.shoppingappmahesh.di
 
-import com.shoppingappmahesh.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -81,7 +80,7 @@ object AppModule {
     @Provides
     @Singleton
     @GeminiApiKey
-    fun provideGeminiApiKey(): String = BuildConfig.GEMINI_API_KEY
+    fun provideGeminiApiKey(): String = "Paste Your Api Key "
 
 
     @Provides
